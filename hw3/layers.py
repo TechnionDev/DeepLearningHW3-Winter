@@ -82,7 +82,7 @@ class LeakyReLU(Layer):
 
         # TODO: Implement the LeakyReLU operation.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = torch.max(self.alpha * x, x)
         # ========================
 
         self.grad_cache["x"] = x
@@ -97,7 +97,9 @@ class LeakyReLU(Layer):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        dx = torch.ones_like(x)
+        dx[x < 0] = self.alpha
+        dx = dx * dout
         # ========================
 
         return dx
@@ -116,7 +118,7 @@ class ReLU(LeakyReLU):
 
     def __init__(self):
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        super().__init__(0)
         # ========================
 
     def __repr__(self):
@@ -142,7 +144,8 @@ class Sigmoid(Layer):
         # TODO: Implement the Sigmoid function.
         #  Save whatever you need into grad_cache.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = 1 / (1 + torch.exp(-x))
+        self.grad_cache['x'] = x
         # ========================
 
         return out
@@ -155,7 +158,9 @@ class Sigmoid(Layer):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        x = self.grad_cache['x']
+        dx = torch.exp(-x) / ((torch.exp(-x) + 1) ** 2)
+        dx = dout * dx
         # ========================
 
         return dx
@@ -183,7 +188,8 @@ class TanH(Layer):
         # TODO: Implement the tanh function.
         #  Save whatever you need into grad_cache.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.grad_cache['x'] = x
+        out = (torch.exp(x) - torch.exp(-x)) / (torch.exp(x) + torch.exp(-x))
         # ========================
 
         return out
@@ -196,7 +202,9 @@ class TanH(Layer):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        x = self.grad_cache['x']
+        dx = 1 - ((torch.exp(x) - torch.exp(-x)) / (torch.exp(x) + torch.exp(-x))) ** 2
+        dx = dx * dout
         # ========================
 
         return dx
@@ -224,7 +232,8 @@ class Linear(Layer):
         # Initialize the weights to zero-mean gaussian noise with a standard
         # deviation of `wstd`. Init bias to zero.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.w = torch.normal(0, wstd, (out_features, in_features))
+        self.b = torch.zeros((1, out_features))
         # ========================
 
         # These will store the gradients
@@ -244,7 +253,7 @@ class Linear(Layer):
 
         # TODO: Compute the affine transform
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = x @ self.w.T + self.b
         # ========================
 
         self.grad_cache["x"] = x
@@ -263,7 +272,9 @@ class Linear(Layer):
         #   - db, the gradient of the loss with respect to b
         #  Note: You should ACCUMULATE gradients in dw and db.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.dw += dout.T @ x
+        self.db += dout.sum(0)
+        dx = dout @ self.w
         # ========================
 
         return dx
@@ -304,7 +315,11 @@ class CrossEntropyLoss(Layer):
         # TODO: Compute the cross entropy loss using the last formula from the
         #  notebook (i.e. directly using the class scores).
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        m = y.shape[0]
+        softmax = torch.nn.Softmax(dim=1)
+        p = softmax(x)
+        log_likelihood = -torch.log(p[range(m), y])
+        loss = torch.sum(log_likelihood) / m
         # ========================
 
         self.grad_cache["x"] = x
@@ -323,7 +338,12 @@ class CrossEntropyLoss(Layer):
 
         # TODO: Calculate the gradient w.r.t. the input x.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        m = y.shape[0]
+        softmax = torch.nn.Softmax(dim=1)
+        grad = softmax(x)
+        grad[range(m), y] -= 1
+        grad = grad / m
+        dx = dout * grad
         # ========================
 
         return dx
@@ -382,7 +402,9 @@ class Sequential(Layer):
         # TODO: Implement the forward pass by passing each layer's output
         #  as the input of the next.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = x
+        for layer in self.layers:
+            out = layer(out, **kw)
         # ========================
 
         return out
@@ -394,7 +416,9 @@ class Sequential(Layer):
         #  Each layer's input gradient should be the previous layer's output
         #  gradient. Behold the backpropagation algorithm in action!
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        din = dout
+        for layer in reversed(self.layers):
+            din = layer.backward(din)
         # ========================
 
         return din
@@ -404,7 +428,9 @@ class Sequential(Layer):
 
         # TODO: Return the parameter tuples from all layers.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        for layer in self.layers:
+            for parameter in layer.params():
+                params.append(parameter)
         # ========================
 
         return params
@@ -440,13 +466,13 @@ class MLP(Layer):
     """
 
     def __init__(
-        self,
-        in_features,
-        num_classes,
-        hidden_features=(),
-        activation="relu",
-        dropout=0,
-        **kw,
+            self,
+            in_features,
+            num_classes,
+            hidden_features=(),
+            activation="relu",
+            dropout=0,
+            **kw,
     ):
         super().__init__()
         """
@@ -462,7 +488,23 @@ class MLP(Layer):
 
         # TODO: Build the MLP architecture as described.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        activation_function = None
+        if activation == 'relu':
+            activation_function = ReLU
+        else:
+            activation_function = Sigmoid
+
+        architecture = [in_features, *hidden_features, num_classes]
+
+        for i in range(len(architecture) - 1):
+            layers.append(Linear(architecture[i], architecture[i + 1]))
+            layers.append(activation_function())
+            if dropout > 0:
+                layers.append(Dropout(dropout))
+
+        layers.pop(-1)
+        if dropout > 0:
+            layers.pop(-1)
         # ========================
 
         self.sequence = Sequential(*layers)
