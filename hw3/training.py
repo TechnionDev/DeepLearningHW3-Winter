@@ -23,7 +23,7 @@ class Trainer(abc.ABC):
     """
 
     def __init__(
-        self, model: nn.Module, device: Optional[torch.device] = None,
+            self, model: nn.Module, device: Optional[torch.device] = None,
     ):
         """
         Initialize the trainer.
@@ -37,15 +37,15 @@ class Trainer(abc.ABC):
             model.to(self.device)
 
     def fit(
-        self,
-        dl_train: DataLoader,
-        dl_test: DataLoader,
-        num_epochs: int,
-        checkpoints: str = None,
-        early_stopping: int = None,
-        print_every: int = 1,
-        post_epoch_fn: Callable = None,
-        **kw,
+            self,
+            dl_train: DataLoader,
+            dl_test: DataLoader,
+            num_epochs: int,
+            checkpoints: str = None,
+            early_stopping: int = None,
+            print_every: int = 1,
+            post_epoch_fn: Callable = None,
+            **kw,
     ) -> FitResult:
         """
         Trains the model for multiple epochs with a given training set,
@@ -64,7 +64,7 @@ class Trainer(abc.ABC):
         """
 
         actual_num_epochs = 0
-        epochs_without_improvement = 0
+        epochs_without_improvement: int = 0
 
         train_loss, train_acc, test_loss, test_acc = [], [], [], []
         best_acc = None
@@ -73,16 +73,23 @@ class Trainer(abc.ABC):
             verbose = False  # pass this to train/test_epoch.
 
             if print_every > 0 and (
-                epoch % print_every == 0 or epoch == num_epochs - 1
+                    epoch % print_every == 0 or epoch == num_epochs - 1
             ):
                 verbose = True
-            self._print(f"--- EPOCH {epoch+1}/{num_epochs} ---", verbose)
+            self._print(f"--- EPOCH {epoch + 1}/{num_epochs} ---", verbose)
 
             # TODO: Train & evaluate for one epoch
             #  - Use the train/test_epoch methods.
             #  - Save losses and accuracies in the lists above.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            actual_num_epochs = epoch
+            train_result = self.train_epoch(dl_train, verbose=verbose, **kw)
+            # print(type(train_result.losses))
+            train_loss += train_result.losses
+            train_acc += [train_result.accuracy]
+            test_result = self.test_epoch(dl_test, verbose=verbose, **kw)
+            test_loss += test_result.losses
+            test_acc += [test_result.accuracy]
             # ========================
 
             # TODO:
@@ -93,12 +100,19 @@ class Trainer(abc.ABC):
             #    the checkpoints argument.
             if best_acc is None or test_result.accuracy > best_acc:
                 # ====== YOUR CODE: ======
-                raise NotImplementedError()
+                epochs_without_improvement = 0
+                best_acc = test_result.accuracy
+                if checkpoints is not None:
+                    torch.save(self.model, checkpoints)
                 # ========================
             else:
                 # ====== YOUR CODE: ======
-                raise NotImplementedError()
+                epochs_without_improvement += 1
                 # ========================
+            # print(type(epochs_without_improvement))
+            # print(type(early_stopping))
+            if early_stopping and epochs_without_improvement >= early_stopping:
+                break
 
             if post_epoch_fn:
                 post_epoch_fn(epoch, train_result, test_result, verbose)
@@ -167,10 +181,10 @@ class Trainer(abc.ABC):
 
     @staticmethod
     def _foreach_batch(
-        dl: DataLoader,
-        forward_fn: Callable[[Any], BatchResult],
-        verbose=True,
-        max_batches=None,
+            dl: DataLoader,
+            forward_fn: Callable[[Any], BatchResult],
+            verbose=True,
+            max_batches=None,
     ) -> EpochResult:
         """
         Evaluates the given forward-function on batches from the given
@@ -223,7 +237,9 @@ class Trainer(abc.ABC):
 class LayerTrainer(Trainer):
     def __init__(self, model, loss_fn, optimizer):
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        super().__init__(model)
+        self.loss_fn = loss_fn
+        self.optimizer = optimizer
         # ========================
 
     def train_batch(self, batch) -> BatchResult:
@@ -236,7 +252,16 @@ class LayerTrainer(Trainer):
         #  - Calculate number of correct predictions (make sure it's an int,
         #    not a tensor) as num_correct.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # print(X.shape)
+        X = X.view(X.shape[0], -1)
+        # print(X.shape)
+        self.optimizer.zero_grad()
+        modelRes = self.model(X)
+        loss = self.loss_fn(modelRes, y)
+        self.model.backward(self.loss_fn.backward())
+        self.optimizer.step()
+        y_index = (torch.max(modelRes, 1)[1] == y)
+        num_correct = torch.sum(y_index).item()
         # ========================
 
         return BatchResult(loss, num_correct)
@@ -246,7 +271,13 @@ class LayerTrainer(Trainer):
 
         # TODO: Evaluate the Layer model on one batch of data.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # print(X.shape)
+        X = X.view(X.shape[0], -1)
+        # print(X.shape)
+        modelRes = self.model(X)
+        loss = self.loss_fn(modelRes, y)
+        y_index = (torch.max(modelRes, 1)[1] == y)
+        num_correct = torch.sum(y_index).item()
         # ========================
 
         return BatchResult(loss, num_correct)

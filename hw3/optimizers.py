@@ -72,7 +72,8 @@ class VanillaSGD(Optimizer):
             #  Update the gradient according to regularization and then
             #  update the parameters tensor.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            dp = dp + self.reg * p
+            p -= self.learn_rate * dp
             # ========================
 
 
@@ -91,10 +92,11 @@ class MomentumSGD(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.prev = [0] * len(params)
         # ========================
 
     def step(self):
+        i = 0
         for p, dp in self.params:
             if dp is None:
                 continue
@@ -103,8 +105,11 @@ class MomentumSGD(Optimizer):
             # update the parameters tensor based on the velocity. Don't forget
             # to include the regularization term.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
-            # ========================
+            dp += self.reg * p
+            self.prev[i] = self.momentum * self.prev[i] - self.learn_rate * dp
+            p += self.prev[i]
+            i += 1
+        # ========================
 
 
 class RMSProp(Optimizer):
@@ -124,10 +129,11 @@ class RMSProp(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.prev = [0] * len(params)
         # ========================
 
     def step(self):
+        i = 0
         for p, dp in self.params:
             if dp is None:
                 continue
@@ -137,5 +143,8 @@ class RMSProp(Optimizer):
             # average of it's previous gradients. Use it to update the
             # parameters tensor.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
-            # ========================
+            dp += self.reg * p
+            self.prev[i] = self.decay * self.prev[i] + (1 - self.decay) * (dp ** 2)
+            p -= (self.learn_rate / ((self.prev[i] + self.eps) ** 0.5)) * dp
+            i += 1
+        # ========================
