@@ -74,7 +74,9 @@ def part2_dropout_hp():
     # TODO: Tweak the hyperparameters to get the model to overfit without
     # dropout.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    wstd = 100
+    #wstd=0.1
+    lr = 0.005
     # ========================
     return dict(wstd=wstd, lr=lr)
 
@@ -136,7 +138,15 @@ def part3_rnn_hyperparams():
     )
     # TODO: Set the hyperparameters to train the model.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hypers['batch_size'] = 250
+    hypers['seq_len'] = 50
+    hypers['h_dim'] = 600
+    hypers['n_layers'] = 2
+    hypers['dropout'] = 0.3
+    hypers['learn_rate'] = 1e-2
+    hypers['lr_sched_factor'] = 0.1
+    hypers['lr_sched_patience'] = 1
+
     # ========================
     return hypers
 
@@ -146,7 +156,8 @@ def part3_generation_params():
     temperature = 0.0001
     # TODO: Tweak the parameters to generate a literary masterpiece.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    start_seq = "You can’t judge a book by its cover"
+    temperature = 0.5
     # ========================
     return start_seq, temperature
 
