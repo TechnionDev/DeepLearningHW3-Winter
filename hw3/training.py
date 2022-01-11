@@ -326,9 +326,9 @@ class TorchTrainer(Trainer):
 class RNNTrainer(Trainer):
     def __init__(self, model, loss_fn, optimizer, device=None):
         self.prev_hidden_state = None
-        super().__init__(model, loss_fn, optimizer, device)
-
-
+        super().__init__(model, device)
+        self.loss_fn = loss_fn
+        self.optimizer = optimizer
         # ========================
 
     def train_epoch(self, dl_train: DataLoader, **kw):
@@ -341,6 +341,7 @@ class RNNTrainer(Trainer):
     def test_epoch(self, dl_test: DataLoader, **kw):
         # TODO: Implement modifications to the base method, if needed.
         # ====== YOUR CODE: ======
+        self.prev_hidden_state = None
         # ========================
         return super().test_epoch(dl_test, **kw)
 
@@ -359,18 +360,32 @@ class RNNTrainer(Trainer):
         #  - Calculate number of correct char predictions
         # ====== YOUR CODE: ======
 
+        #
+        # if self.prev_hidden_state is None:
+        #     y_pred, state = self.model(x)
+        # else:
+        #     y_pred, state = self.model(x, self.prev_hidden_state)
+        # y_pred_fixed = torch.transpose(y_pred, 1, 2).to(self.device)
+        # loss = self.loss_fn(y_pred_fixed, y)
+        #
+        # self.optimizer.zero_grad()
+        # loss.backward(retain_graph=True)
+        # self.prev_hidden_state = state.detach().clone()
+        # self.optimizer.step()
+        #
+        # y_pred = torch.argmax(y_pred, dim=2)
+        # num_correct = (y_pred.to(device=self.device) == y).sum()
         self.optimizer.zero_grad()
-        if self.prev_state is None:
+        if self.prev_hidden_state is None:
             output, state = self.model(x)
         else:
-            output, state = self.model(x, self.prev_state)
-        loss = self.loss_fn(output.permute(0,2,1).to(self.device), y)
+            output, state = self.model(x, self.prev_hidden_state)
+        loss = self.loss_fn(output.permute(0, 2, 1).to(self.device), y)
         pred = torch.argmax(output, dim=2)
         loss.backward()
-        self.prev_state = state.detach().clone()
+        self.prev_hidden_state = state.detach().clone()
         self.optimizer.step()
         num_correct = (pred.to(device=self.device) == y).sum()
-
 
         # ========================
 
