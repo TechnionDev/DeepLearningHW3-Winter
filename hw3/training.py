@@ -326,8 +326,9 @@ class TorchTrainer(Trainer):
 class RNNTrainer(Trainer):
     def __init__(self, model, loss_fn, optimizer, device=None):
         self.prev_hidden_state = None
-        super().__init__(model, loss_fn, optimizer, device)
-
+        super().__init__(model, device)
+        self.optimizer = optimizer
+        self.loss_fn = loss_fn
 
         # ========================
 
@@ -359,18 +360,20 @@ class RNNTrainer(Trainer):
         #  - Calculate number of correct char predictions
         # ====== YOUR CODE: ======
 
-        self.optimizer.zero_grad()
-        if self.prev_state is None:
-            output, state = self.model(x)
+        if self.prev_hidden_state is None:
+            y_pred, state = self.model(x)
         else:
-            output, state = self.model(x, self.prev_state)
-        loss = self.loss_fn(output.permute(0,2,1).to(self.device), y)
-        pred = torch.argmax(output, dim=2)
-        loss.backward()
-        self.prev_state = state.detach().clone()
-        self.optimizer.step()
-        num_correct = (pred.to(device=self.device) == y).sum()
+            y_pred, state = self.model(x, self.prev_hidden_state)
+        y_pred_fixed = torch.transpose(y_pred, 1, 2)
+        loss = self.loss_fn(y_pred_fixed.to(self.device), y)
 
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.prev_hidden_state = state.detach().clone()
+        self.optimizer.step()
+
+        pred = torch.argmax(y_pred, dim=2)
+        num_correct = (pred.to(device=self.device) == y).sum()
 
         # ========================
 
@@ -391,7 +394,15 @@ class RNNTrainer(Trainer):
             #  - Loss calculation
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            if self.prev_hidden_state is None:
+                y_pred, state = self.model(x)
+            else:
+                y_pred, state = self.model(x, self.prev_hidden_state)
+            y_pred_fixed = torch.transpose(y_pred, 1, 2)
+            loss = self.loss_fn(y_pred_fixed.to(device=self.device), y)
+            pred = torch.argmax(y_pred, dim=2).to(device=self.device)
+            num_correct = (pred == y).sum()
+            self.prev_hidden_state = state.detach().clone()
             # ========================
 
         return BatchResult(loss.item(), num_correct.item() / seq_len)
