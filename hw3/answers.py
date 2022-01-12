@@ -82,15 +82,7 @@ def part2_dropout_hp():
 
 
 part2_q1 = r"""
-**Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
 
 """
 
@@ -138,15 +130,14 @@ def part3_rnn_hyperparams():
     )
     # TODO: Set the hyperparameters to train the model.
     # ====== YOUR CODE: ======
-    hypers['batch_size'] = 250
-    hypers['seq_len'] = 50
-    hypers['h_dim'] = 600
+    hypers['batch_size'] = 100
+    hypers['seq_len'] = 64
+    hypers['h_dim'] = 512
     hypers['n_layers'] = 2
-    hypers['dropout'] = 0.3
+    hypers['dropout'] = 0.11
     hypers['learn_rate'] = 1e-2
     hypers['lr_sched_factor'] = 0.1
     hypers['lr_sched_patience'] = 1
-
     # ========================
     return hypers
 
