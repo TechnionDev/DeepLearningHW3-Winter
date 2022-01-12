@@ -138,15 +138,14 @@ def chars_to_labelled_samples(text: str, char_to_idx: dict, seq_len: int, device
     map_len = len(char_to_idx)
     embedded_sample = chars_to_onehot(text, char_to_idx).to(device=device)
     embedded_sample = embedded_sample[:seq_len * num_samples]
-    samples = torch.reshape(embedded_sample,(num_samples, seq_len, map_len))
-    samples=samples.to(device=device)
+    samples = torch.reshape(embedded_sample, (num_samples, seq_len, map_len))
+    samples = samples.to(device=device)
 
-    embedded_label = chars_to_onehot(text, char_to_idx)
-    embedded_floated_label=embedded_label.float().T.to(device=device)
-    indexed_chars = ((torch.FloatTensor(range(map_len))) @ embedded_floated_label)
-    labels = torch.reshape((indexed_chars[1:num_samples * seq_len + 1]),(num_samples, seq_len))
-    labels=labels.to(device=device)
-
+    embedded_label = chars_to_onehot(text, char_to_idx).to(device=device)
+    embedded_floated_label = embedded_label.float().T
+    indexed_chars = ((torch.FloatTensor(range(map_len)).to(device=device)) @ embedded_floated_label)
+    labels = torch.reshape((indexed_chars[1:num_samples * seq_len + 1]), (num_samples, seq_len))
+    labels = labels.to(device=device)
 
     # ========================
     return samples, labels
@@ -163,7 +162,7 @@ def hot_softmax(y, dim=0, temperature=1.0):
     """
     # TODO: Implement based on the above.
     # ====== YOUR CODE: ======
-    result = torch.softmax(y/temperature,dim)
+    result = torch.softmax(y / temperature, dim)
     # ========================
     return result
 
@@ -203,20 +202,20 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     length = n_chars - len(start_sequence)
     with torch.no_grad():
         for i in range(length):
-            if(i==0):
+            if (i == 0):
                 onehot = chars_to_onehot(start_sequence, char_to_idx)
             else:
                 onehot = chars_to_onehot(char_to_add, char_to_idx)
             onehot_3dim = onehot.unsqueeze(0).float().to(device)
-            if(i==0):
+            if (i == 0):
                 y, h = model(onehot_3dim)
             else:
-                y, h = model(onehot_3dim,h)
-            if(i==0):
-                y_use=y[0][-1]
+                y, h = model(onehot_3dim, h)
+            if (i == 0):
+                y_use = y[0][-1]
             else:
-                y_use=y[0][0]
-            res = hot_softmax(y_use,dim=-1, temperature=T)
+                y_use = y[0][0]
+            res = hot_softmax(y_use, dim=-1, temperature=T)
             char_sample = torch.multinomial(res, 1)
             char_to_add = idx_to_char[char_sample.item()]
             out_text += char_to_add
@@ -251,11 +250,11 @@ class SequenceBatchSampler(torch.utils.data.Sampler):
         #  the same index of adjacent batches are also adjacent in the dataset.
         #  In the case when the last batch can't have batch_size samples,
         #  you can drop it.
-        #idx = None  # idx should be a 1-d list of indices.
+        # idx = None  # idx should be a 1-d list of indices.
         # ====== YOUR CODE: ======
 
-        idx = [i+j*(len(self.dataset)//self.batch_size)
-               for i in range(len(self.dataset)//self.batch_size)
+        idx = [i + j * (len(self.dataset) // self.batch_size)
+               for i in range(len(self.dataset) // self.batch_size)
                for j in range(self.batch_size)]
         # ========================
         return iter(idx)
