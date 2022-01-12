@@ -82,22 +82,28 @@ def part2_dropout_hp():
 
 
 part2_q1 = r"""
+1. the results that we can see in the graphs are somewhat matching our initial exception of what we would get from the 
+experiment - although the results were more 'noise' then expected and because of that our conclusion is somewhat questionable.
+with no dropouts (=0) we can see an increase in overfitting  on the train data with no clear increase in the accuracy of the test. 
+this is as expected!
+with dropout of 0.4 we can see that the accuracy is higher then the rest of the the configurations which is what we expected.
+because of the dropout of part of the neurons we are able to mitigate the overfitting affect.
+with dropout of 0.8, most of the neurons are dropt-out and we expected to have an randoms affect that we could absorve in the graph.
+but due to the noise of the results  we can't really see this clearly  
 
+2. as explained above the high dropout setting is dropping most of the neurons and it make for a more random behaviour - we can see that the test accuray is most of the time below the 0.4 dropout.
+in the 0.4 dropout the results are better, we are meneging the oevrfitting affect in a better way. 
+ 
 
 """
 
 part2_q2 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+the answer is that its possible. Cross-Entropy Loss is penalizing the model over wrong predictions. 
+so because of that incorrect prediction have more lasting effect on the loss value than correct predictions.
+were there are wrong predictions over one class, and the rest of the predictions of the class are correct
+, it is possible for the test loss to increase while the accuracy also increases. 
 """
+
 
 part2_q3 = r"""
 **Your answer:**
