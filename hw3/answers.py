@@ -153,7 +153,7 @@ def part3_generation_params():
     temperature = 0.0001
     # TODO: Tweak the parameters to generate a literary masterpiece.
     # ====== YOUR CODE: ======
-    start_seq = "You can’t judge a book by its cover"
+    start_seq = "You cant judge a book by its cover"
     temperature = 0.5
     # ========================
     return start_seq, temperature
