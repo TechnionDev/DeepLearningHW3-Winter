@@ -138,12 +138,12 @@ def part3_rnn_hyperparams():
     # ====== YOUR CODE: ======
     hypers['batch_size'] = 100
     hypers['seq_len'] = 64
-    hypers['h_dim'] = 512
-    hypers['n_layers'] = 2
-    hypers['dropout'] = 0.11
-    hypers['learn_rate'] = 1e-2
-    hypers['lr_sched_factor'] = 0.1
-    hypers['lr_sched_patience'] = 1
+    hypers['h_dim'] = 128
+    hypers['n_layers'] = 3
+    hypers['dropout'] = 0.1
+    hypers['learn_rate'] = 0.0001
+    hypers['lr_sched_factor'] = 0.0001
+    hypers['lr_sched_patience'] = 0.0001
     # ========================
     return hypers
 
