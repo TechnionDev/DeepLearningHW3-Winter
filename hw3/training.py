@@ -103,7 +103,7 @@ class Trainer(abc.ABC):
                 epochs_without_improvement = 0
                 best_acc = test_result.accuracy
                 if checkpoints is not None:
-                    torch.save(self.model, checkpoints)
+                    #torch.save(self.model, checkpoints)
                     self.save_checkpoint(checkpoints)
                 # ========================
             else:
