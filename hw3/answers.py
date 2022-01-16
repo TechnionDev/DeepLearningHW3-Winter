@@ -176,54 +176,40 @@ def part3_generation_params():
 
 
 part3_q1 = r"""
-**Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+We split the corpus into sequences instead of training on the whole text because using the whole text, instead of adjusting
+the model for a closer context, it will search for connections between distant sentences. In addition, due to its exceptional architecture,
+if we don't split it, the model can only handle a single prediction at a time. Also, if we use big text to train our model,
+we don't want the text's big letters to affect later letters. 
 
 """
 
 part3_q2 = r"""
-**Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The memory keeps a hidden state at the end of each batch that holds data from previous batches and passes it on to the next generation. 
+This is the reason we have longer memory, we keep data about previous sentences.
 
 """
 
 part3_q3 = r"""
-**Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+  
+we don't select the order of batches when training randomly because the order maintains a logical connection and by keeping it 
+we keep the original order that we got from the text.
+For the model to generate useful sentences, those relations need to be learned.
+It is vital to maintain a logical connection when updating the hidden state because during our training, 
+we break down a statement into pieces, each one in a different batch.
 """
 
 part3_q4 = r"""
-**Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+ 
+1.While we can make mistakes when learning, we don't want to make mistakes when generating, since we'd rather obtain
+  a sensible result than an incoherent one.
+2.As we can see according to the softmax function, the distribution of characters becomes more uniform as the
+ temperature approaches one. The results would be less logical since the network will select approximately at random among every word in the corpus.
+3.When we lower the temperature, in a rising probability, we will choose the best-fitting word from the corpus.
+in that case, it will give a higher probability to the character the model believes to be correct and will give a low 
+probability to the rest of the characters.
 
 """
 # ==============
