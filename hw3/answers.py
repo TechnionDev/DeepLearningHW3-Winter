@@ -10,27 +10,34 @@ math (delimited with $$).
 
 part1_q1 = r"""
 **Your answer:**
+1. input X:
+A. the shape of the tensor would be 64\*512\*64\*1024 B. we can represent a fully connected layer as Y=XW.
+ So we would expect our dim's to be Y_{64\*512} = X_{64\*1024}W_{1024\*512}. So the Jacobin would end pu to be as described. 
+ 
+B. as we know etch element (i,j) of the output matrix Y is equal to the sum from k=1 up to k=1024 of X_{i,k}\*W_{k,j}.
+so the partial derivative of y_{i,j} with respect to x is equal to a matrix were only one row has non-zeros values = a sparce matrix. 
+this is happening for each combination of {i,j}. so we eventually get a 4D tensor of many sparse matrices. 
 
+C. we dont need to calculate the downstream gradient w.r.t the input dX.
+ we saw in the lecture that we can represent the partial derivative as a sum of:
+ dX = (dY/dX)\*(dL/dY) = (dY/dX)\*dY = sum_{k=1 to 64} [(dY_{k}/dX)\*dY_{k}] = (dY)W^T.
+2. input W:
+A .as before the dim would be 64\*512\*1024\*512. 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+B .as part 1, but now we will get a matrix dY_{i,j}/dW, were only one column has non-zero values. so the over all matrix 
+would still be a sparse one.
+
+C. same answer as part 1, the equation will now be : 
+dW = (dL/dY)*(dY/dX) = dY*(dY/dX) = sum_{k=1 to 64} [dY_{k}*(dY_{k}/dX)] = X^T*(dY).
 
 """
 
 part1_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+backpropagation is not requires for the training of a gradient descent optimizer. 
+we are using backpropagation as a tool for improving the performance of our calculations. 
+we can calculate the numerical gradient of the entire network 
+which is significantly slower - but results a same output as backprop.
 
 """
 # ==============
@@ -107,14 +114,23 @@ were there are wrong predictions over one class, and the rest of the predictions
 
 part2_q3 = r"""
 **Your answer:**
+1. backpropagation is a tool for efficiently calculating the gradients of the model using the chain-rule - 
+it doesn't optimises anything by itself.
+ on the over hand, GD/SGD is a tool for solving optimization problems - by using the gradient of the model.
+ 
+2. SGD and GD are both methods of solving an optimization problem using the gradients of the model. in GD we are passing 
+over all of the samples before updating the prameters. were in SGD we are passing over some batch of samples (or even one sample at a time)
+and then we are updating the paramters with respect to the loss of that singal batch. the main idea is that in SGD we
+should be able to converge faster - as we changing our parmetes w.r.t a small sample eatch time - 
+and thus "exploring the world in a better way". we would expect to get an overall worse approx. error with SGD.
 
+3. in sgd we are expecting to overcome local minimum and saddle points - as each time we twick the parameters w.r.t a diff batch sample.
+another reason is that because SGD is converging faster we prefer it when dealing with large Data sets. 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+4. A. our DL model uses non-linear functions. as we know, given function f(x1+x2) != f(x1)+f(x2). and because of that proprety, 
+using this suggestion(splitting the data to batches and than adding the loss) would result in a different results then GD.
+ B. in each forward pass we still would need to store the result of that forward pass. so the accumulation of the total loss would be possible. 
+ so its possible that in some point we will loss all free memory.
 
 """
 # ==============
